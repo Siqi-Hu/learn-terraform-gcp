@@ -4,12 +4,10 @@
 .ruff_cache
 *.egg-info
 
-target/
-dbt_packages/
-logs/
-
 .user.yml
 *.secrets
+# service account
+terraform-siqi-gcp-learning-1.json
 
 **/__pycache__/
 
