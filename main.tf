@@ -1,4 +1,11 @@
 terraform {
+  cloud {
+    organization = "HCP-Terraform-Siqi-Tutorials"
+    workspaces {
+      name = "learn-terraform-gcp"
+    }
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
