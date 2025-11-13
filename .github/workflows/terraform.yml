@@ -4,9 +4,9 @@ on:
   pull_request:
     branches:
       - main   # target branch linked to your HCP Terraform workspace
-  push:
-    branches:
-      - main   # optional, re-run validation on main merges
+  # push:
+  #   branches:
+  #     - main   # optional, re-run validation on main merges
 
 permissions:
   contents: read
@@ -41,29 +41,29 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      # 6️⃣ (Optional) Speculative plan on PR
-      # This runs a "dry-run" plan on HCP Terraform, no apply.
-      - name: Terraform Plan (Speculative)
-        run: terraform plan -input=false -no-color
+      # # 6️⃣ (Optional) Speculative plan on PR
+      # # This runs a "dry-run" plan on HCP Terraform, no apply.
+      # - name: Terraform Plan (Speculative)
+      #   run: terraform plan -input=false -no-color
 
-      # 7️⃣ (Optional) Comment plan summary back to PR
-      - name: Comment Plan to PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const { execSync } = require('child_process');
-            let plan = '';
-            try {
-              plan = execSync('terraform plan -no-color').toString();
-            } catch (e) {
-              plan = e.stdout.toString();
-            }
-            const truncatedPlan = plan.length > 65000 ? plan.slice(0, 65000) + "\n\n... (truncated)" : plan;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🧠 **Terraform Plan Result:**\n\n\`\`\`hcl\n${truncatedPlan}\n\`\`\``
-            })
+      # # 7️⃣ (Optional) Comment plan summary back to PR
+      # - name: Comment Plan to PR
+      #   if: github.event_name == 'pull_request'
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       const fs = require('fs');
+      #       const { execSync } = require('child_process');
+      #       let plan = '';
+      #       try {
+      #         plan = execSync('terraform plan -no-color').toString();
+      #       } catch (e) {
+      #         plan = e.stdout.toString();
+      #       }
+      #       const truncatedPlan = plan.length > 65000 ? plan.slice(0, 65000) + "\n\n... (truncated)" : plan;
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: `🧠 **Terraform Plan Result:**\n\n\`\`\`hcl\n${truncatedPlan}\n\`\`\``
+      #       })

@@ -29,11 +29,15 @@ resource "google_compute_network" "vpc_network" {
 resource "google_compute_instance" "vm_instance" {
   name         = "terraform-instance"
   machine_type = "f1-micro"
-  tags         = ["web", "dev"]
+  tags         = ["web", "dev"] # Network tags
+  labels = {
+    environment = "dev"
+    owner       = "siqi"
+  } # Key-value metadata
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-11"
+      image = "cos-cloud/cos-stable"
     }
   }
 
