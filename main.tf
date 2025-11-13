@@ -12,6 +12,8 @@ terraform {
       version = "6.8.0"
     }
   }
+
+  required_version = "1.13.5"
 }
 
 provider "google" {
@@ -27,6 +29,7 @@ resource "google_compute_network" "vpc_network" {
 resource "google_compute_instance" "vm_instance" {
   name         = "terraform-instance"
   machine_type = "f1-micro"
+  tags         = ["web", "dev"]
 
   boot_disk {
     initialize_params {
