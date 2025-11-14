@@ -27,7 +27,11 @@ No modules.
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_project"></a> [project](#input\_project) | n/a | `string` | n/a | yes |
+| <a name="input_region"></a> [region](#input\_region) | n/a | `string` | `"us-central1"` | no |
+| <a name="input_zone"></a> [zone](#input\_zone) | n/a | `string` | `"us-central1"` | no |
 
 ## Outputs
 
