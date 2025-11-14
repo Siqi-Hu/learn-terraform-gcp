@@ -86,7 +86,7 @@ jobs:
           LOG_URL=$(curl -s \
             --header "Authorization: Bearer $TFC_TOKEN" \
             "https://app.terraform.io/api/v2/plans/${PLAN_ID}" \
-            | jq -r '.data.attributes."log-read-url"'' )
+            | jq -r '.data.attributes."log-read-url"' )
           
           echo "Log URL: LOG_URL$"
 
