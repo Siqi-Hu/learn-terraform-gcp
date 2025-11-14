@@ -44,7 +44,7 @@ jobs:
       - name: Fetch speculative plan from HCP Terraform and comment on PR
         if: github.event_name == 'pull_request'
         env:
-          TFC_ORG: ${{ vars.TFC_ORG }}
+          # TFC_ORG: ${{ vars.TFC_ORG }}
           TFC_WORKSPACE_ID: ${{ vars.TFC_WORKSPACE_ID }}
           TFC_TOKEN: ${{ secrets.TF_API_TOKEN }}
         run: |
@@ -52,7 +52,7 @@ jobs:
           RUN_ID=$(curl -s \
             --header "Authorization: Bearer $TFC_TOKEN" \
             --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/${TFC_WORKSPACE_ID}/runs?filter%5Bsource%5D=tfe-configuration-version"
+            "https://app.terraform.io/api/v2/workspaces/${TFC_WORKSPACE_ID}/runs?filter%5Bsource%5D='tfe-configuration-version'"
             | jq -r '.data[0].id')
 
           echo "Latest speculative run: $RUN_ID"
