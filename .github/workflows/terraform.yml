@@ -88,10 +88,10 @@ jobs:
             "https://app.terraform.io/api/v2/plans/${PLAN_ID}" \
             | jq -r '.data.attributes."log-read-url"' )
           
-          echo "Log URL: LOG_URL$"
+          echo "Log URL: $LOG_URL"
 
           # 5. Fetch the actual plan text
-          PLAN_TEXT=$(curl -s "$LOG_URL")
+          PLAN_TEXT=$(curl -s "${LOG_URL}")
 
           # Fallback if there is an error
           if [ -z "$PLAN_TEXT" ]; then
@@ -100,4 +100,4 @@ jobs:
 
           # 5. Comment to the Pull Request
           gh pr comment ${{ github.event.pull_request.number }} \
-            --body "🧠 **Terraform Cloud Speculative Plan:**\n\`\`\`json\n${PLAN_TEXT}\n\`\`\`"
+            --body "🧠 **Terraform Cloud Speculative Plan Raw Log:**\n\`\`\`json\n${PLAN_TEXT}\n\`\`\`"
