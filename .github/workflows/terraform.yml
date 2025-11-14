@@ -41,12 +41,7 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      # # 6️⃣ (Optional) Speculative plan on PR
-      # # This runs a "dry-run" plan on HCP Terraform, no apply.
-      # - name: Terraform Plan (Speculative)
-      #   run: terraform plan -input=false -no-color
-
-      # # 7️⃣ (Optional) Comment plan summary back to PR
+      # 7️⃣ (Optional) Comment plan summary back to PR
       - name: Comment Plan to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
