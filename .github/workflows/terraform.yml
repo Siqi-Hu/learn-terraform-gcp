@@ -45,14 +45,14 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           TFC_ORG: ${{ vars.TFC_ORG }}
-          TFC_WORKSPACE: ${{ vars.TFC_WORKSPACE }}
+          TFC_WORKSPACE_ID: ${{ vars.TFC_WORKSPACE_ID }}
           TFC_TOKEN: ${{ secrets.TF_API_TOKEN }}
         run: |
           # 1. Get the latest run triggered for this commit
           RUN_ID=$(curl -s \
             --header "Authorization: Bearer $TFC_TOKEN" \
             --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/organizations/${TFC_ORG}/workspaces/${TFC_WORKSPACE}/runs?filter%5Bsource%5D=vcs" \
+            "https://app.terraform.io/api/v2/workspaces/${TFC_WORKSPACE_ID}/runs?filter%5Bsource%5D=tfe-configuration-version"
             | jq -r '.data[0].id')
 
           echo "Latest speculative run: $RUN_ID"
@@ -67,7 +67,7 @@ jobs:
 
             echo "Run status: $STATUS"
 
-            if [[ "$STATUS" == "planned" || "$STATUS" == "errored" ]]; then
+            if [[ "$STATUS" == "planned" || "$STATUS" == "errored" || "$STATUS" == "planned_and_finished"]]; then
               break
             fi
 
@@ -82,11 +82,16 @@ jobs:
 
           echo "Plan ID: $PLAN_ID"
 
-          # 4. Get the actual plan output
-          PLAN_TEXT=$(curl -s \
+          # 4. Get the log url 
+          LOG_URL=$(curl -s \
             --header "Authorization: Bearer $TFC_TOKEN" \
-            "https://app.terraform.io/api/v2/plans/${PLAN_ID}/json-output" \
-            | jq -r '.resource_changes')
+            "https://app.terraform.io/api/v2/plans/${PLAN_ID}" \
+            | jq -r '.data.attributes."log-read-url" )
+          
+          echo "Log URL: LOG_URL$"
+
+          # 5. Fetch the actual plan text
+          PLAN_TEXT=$(curl -s "$LOG_URL")
 
           # Fallback if there is an error
           if [ -z "$PLAN_TEXT" ]; then
