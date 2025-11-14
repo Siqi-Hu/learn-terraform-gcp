@@ -41,63 +41,24 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Fetch speculative plan from HCP Terraform and comment on PR
+      # 7️⃣ (Optional) Comment plan summary back to PR
+      - name: Comment Plan to PR
         if: github.event_name == 'pull_request'
-        env:
-          # TFC_ORG: ${{ vars.TFC_ORG }}
-          TFC_WORKSPACE_ID: ${{ vars.TFC_WORKSPACE_ID }}
-          TFC_TOKEN: ${{ secrets.TF_API_TOKEN }}
-        run: |
-          # 1. Get the latest run triggered for this commit
-          RUN_ID=$(curl -s \
-            --header "Authorization: Bearer $TFC_TOKEN" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/${TFC_WORKSPACE_ID}/runs?filter%5Bsource%5D=tfe-configuration-version" \
-            | jq -r '.data[0].id')
-
-          echo "Latest speculative run: $RUN_ID"
-
-          # 2. Poll until the run finishes
-          STATUS=""
-          while true; do
-            STATUS=$(curl -s \
-              --header "Authorization: Bearer $TFC_TOKEN" \
-              "https://app.terraform.io/api/v2/runs/${RUN_ID}" \
-              | jq -r '.data.attributes.status')
-
-            echo "Run status: $STATUS"
-
-            if [[ "$STATUS" == "planned" || "$STATUS" == "errored" || "$STATUS" == "planned_and_finished" ]]; then
-              break
-            fi
-
-            sleep 5
-          done
-
-          # 3. Get the plan ID
-          PLAN_ID=$(curl -s \
-            --header "Authorization: Bearer $TFC_TOKEN" \
-            "https://app.terraform.io/api/v2/runs/${RUN_ID}" \
-            | jq -r '.data.relationships.plan.data.id')
-
-          echo "Plan ID: $PLAN_ID"
-
-          # 4. Get the log url 
-          LOG_URL=$(curl -s \
-            --header "Authorization: Bearer $TFC_TOKEN" \
-            "https://app.terraform.io/api/v2/plans/${PLAN_ID}" \
-            | jq -r '.data.attributes."log-read-url"' )
-          
-          echo "Log URL: $LOG_URL"
-
-          # 5. Fetch the actual plan text
-          PLAN_TEXT=$(curl -s "${LOG_URL}")
-
-          # Fallback if there is an error
-          if [ -z "$PLAN_TEXT" ]; then
-            PLAN_TEXT="Unable to fetch plan output."
-          fi
-
-          # 5. Comment to the Pull Request
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "🧠 **Terraform Cloud Speculative Plan Raw Log:**\n\`\`\`json\n${PLAN_TEXT}\n\`\`\`"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+            let plan = '';
+            try {
+              plan = execSync('terraform plan -no-color').toString();
+            } catch (e) {
+              plan = e.stdout.toString();
+            }
+            const truncatedPlan = plan.length > 65000 ? plan.slice(0, 65000) + "\n\n... (truncated)" : plan;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🧠 **Terraform Plan Result:**\n\n\`\`\`hcl\n${truncatedPlan}\n\`\`\``
+            })
